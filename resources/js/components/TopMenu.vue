@@ -1,61 +1,120 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <router-link :to="{name: 'home'}" class="navbar-brand">Laravel + JWT + Vue JS</router-link>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto" v-if="$auth.check(1)">
-          <li class="nav-item" v-for="(route, key) in routes.user" v-bind:key="route.path">
-            <router-link :to="{ name : route.path }" :key="key" class="nav-link">{{route.name}}</router-link>
-          </li>
-      </ul>
-      <ul class="navbar-nav mr-auto" v-if="$auth.check(2)">
-          <li class="nav-item" v-for="(route, key) in routes.user" v-bind:key="route.path">
-            <router-link :to="{ name : route.path }" :key="key" class="nav-link">{{route.name}}</router-link>
-          </li>
-      </ul>
-      <ul class="navbar-nav ml-auto" v-if="!$auth.check()">
-          <li class="nav-item" v-for="(route, key) in routes.unlogged" v-bind:key="route.path">
-            <router-link :to="{ name : route.path }" :key="key" class="nav-link">{{route.name}}</router-link>
-          </li>
-      </ul>
-      <ul class="navbar-nav ml-auto" v-if="$auth.check()">
-        <li class="nav-item">
-          <a class="nav-link" href="#" @click.prevent="$auth.logout()">Logout</a>
-        </li>
-      </ul>
+    <div class="margin-bottom-app">
+        <v-app-bar  dense fixed>
+            <v-app-bar-nav-icon
+                @click.stop="drawer = !drawer"
+                class="d-flex d-sm-none"
+            />
+            <v-img
+                src="/images/logo.png"
+                aspect-ratio="1"
+                class="mr-2"
+                max-width="20"
+                max-height="20"
+            />
+
+            <v-toolbar-title>Jemap</v-toolbar-title>
+
+            <v-toolbar-items
+                class="d-none d-sm-flex">
+                <v-menu
+                    open-on-hover
+                    bottom
+                    offset-y
+                    v-if="$auth.check(['Manage_Users']) && ($auth.user().role_id==1) ">
+                        <template v-slot:activator="{ on, attrs}">
+                            <v-btn
+                                text
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon class="mr-2">mdi-settings</v-icon>
+                                {{ $t('System') }}
+                            </v-btn>
+                        </template>
+                        <v-list :dense="true">
+                            <p-menu-list-item
+                                :toPath="'admin.users'"
+                                :itemName="$t('Users')"
+                                :iconName="'mdi-account-group'"
+                                v-if="$auth.check('Manage_Users') && ($auth.user().role_id==1)">
+                            </p-menu-list-item>
+                            <p-menu-list-item
+                                :toPath="'admin.dashboard'"
+                                :itemName="$t('Test')"
+                                :iconName="'mdi-account-group'"
+                                v-if="$auth.check('Manage_Users') && ($auth.user().role_id==1)">
+                            </p-menu-list-item>
+                        </v-list>
+                </v-menu>
+            </v-toolbar-items>
+
+            <v-spacer></v-spacer>
+
+            <p-icon-button
+                :toPath="'login'"
+                :txtTooltip="$t('Sign in')"
+                :iconName="'mdi-lock-open-variant'"
+                v-if="!$auth.check()" >
+            </p-icon-button>
+            <p-icon-button
+                :toPath="'register'"
+                :txtTooltip="$t('Create account in Jemap')"
+                :iconName="'mdi-account-plus'"
+                v-if="!$auth.check()" >
+            </p-icon-button>
+
+            <v-tooltip
+                bottom
+                v-if="$auth.check()">
+                    <template v-slot:activator="{ on }">
+                        <v-btn v-on="on" text @click.prevent="logoff" >
+                            <v-icon>mdi-logout-variant</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>{{ $t('Logout') }}</span>
+            </v-tooltip>
+
+        </v-app-bar>
+        <p-snack-bar
+            :txtSnackBar="snackbar.txtErrorMessage"
+            :showBar="snackbar.showErrorMessage"
+            :timeout="3000"
+            :color="snackbar.color"
+            >
+        </p-snack-bar>
     </div>
-  </nav>
 </template>
 <script>
-  export default {
+export default {
     data() {
-      return {
-        routes: {
-          // UNLOGGED
-          unlogged: [
-            { name: 'Register', path: 'register' },
-            { name: 'Login', path: 'login'}
-          ],
-          // LOGGED USER
-          user: [
-            { name: 'Dashboard', path: 'dashboard' }
-          ],
-          // LOGGED ADMIN
-          admin: [
-            { name: 'Dashboard', path: 'admin.dashboard' }
-          ]
+        return {
+            snackbar:
+            {
+                showErrorMessage: false,
+                txtErrorMessage: '',
+                color: 'error',
+            },
         }
-      }
     },
     mounted() {
-      //
+        console.log('$auth.user',this.$auth.user());
+    },
+    methods: {
+        goTo: function(path)
+        {
+            this.$router.push({name: path}).catch(err => {});
+        },
+        logoff: function()
+        {
+            this.$showError(this.$t("Closing session... wait a moment please"),'success',this);
+            this.$auth.logout();
+        }
     }
-  }
+}
+
 </script>
 <style>
-.navbar {
-  margin-bottom: 30px;
+.margin-bottom-app {
+  margin-bottom: 40px;
 }
 </style>

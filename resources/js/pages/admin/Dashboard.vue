@@ -9,6 +9,7 @@
         <div class="card card-default">
             <div class="card-header">Users list</div>
             <div class="card-body">
+
                 <user-list></user-list>
             </div>
         </div>
@@ -17,7 +18,7 @@
 <script>
   export default {
     mounted() {
-      //
+
     },
   }
 </script>

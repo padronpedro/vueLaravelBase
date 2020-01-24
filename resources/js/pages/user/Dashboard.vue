@@ -23,6 +23,9 @@
     },
     components: {
       //
+    },
+    mounted() {
+        console.log(this.$auth.user());
     }
   }
 </script>

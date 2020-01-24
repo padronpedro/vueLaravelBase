@@ -40,6 +40,10 @@ Route::prefix('v1')->group(function () {
      * Basic Routes
      **/
     Route::middleware('auth:api')->group(function () {
-        Route::resource('user', 'UserController')->only(['index','show']);
+
+        Route::get('/user/datatable', 'UserController@getUsersForDataTable')->middleware(['permission:Manage_Users'])->name('user.datatable');
+        Route::post('/user/status', 'UserController@statusUser')->middleware(['permission:Edit_Users'])->name('user.status');
+        Route::resource('user', 'UserController');
+
     });
 });
