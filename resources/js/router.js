@@ -1,11 +1,11 @@
 import VueRouter from 'vue-router'
 // Pages
 import Home from './pages/Home'
-import Register from './pages/Register'
-import Login from './pages/Login'
+import Register from './pages/login/Register'
+import Login from './pages/login/Login'
 import Dashboard from './pages/user/Dashboard'
 import AdminDashboard from './pages/admin/Dashboard'
-
+import AdminUsers from './pages/admin/AdminUsers'
 // Routes
 const routes = [
   {
@@ -48,7 +48,21 @@ const routes = [
     component: AdminDashboard,
     meta: {
       auth: {
-        roles: -1,
+        roles: 'Manage_Users',
+        redirect: {
+          name: 'login'
+        },
+        forbiddenRedirect: '/403'
+      }
+    }
+  },
+  {
+    path: '/admin/users',
+    name: 'admin.users',
+    component: AdminUsers,
+    meta: {
+      auth: {
+        roles: 'Manage_Users',
         redirect: {
           name: 'login'
         },
