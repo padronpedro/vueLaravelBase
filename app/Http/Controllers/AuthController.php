@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Auth;
-use Validator;
 use App\User;
+use Validator;
+use Auth;
 
 class AuthController extends Controller
 {
@@ -17,7 +17,7 @@ class AuthController extends Controller
         $v = Validator::make($request->all(), [
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users',
-            'password'  => 'required|min:3|confirmed',
+            'password'  => 'required|min:7|confirmed',
         ]);
         if ($v->fails())
         {
@@ -40,9 +40,18 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
         if ($token = $this->guard()->attempt($credentials)) {
-            return response()->json(['status' => 'success'], 200)->header('Authorization', $token);
+            $user = User::find(Auth::user()->id);
+            if($user->is_active)
+            {
+                return response()->json(['status' => 'success'], 200)->header('Authorization', $token);
+            }else{
+                $this->guard()->logout();
+                return response()->json([
+                    'error' => __('Account disabled')
+                ], 401);
+            }
         }
-        return response()->json(['error' => 'login_error'], 401);
+        return response()->json(['error' => __('Invalid credentials')], 401);
     }
     /**
      * Logout User
@@ -61,6 +70,15 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = User::find(Auth::user()->id);
+        $tempRole = $user->permissions;
+
+        $tempo = array();
+        foreach($tempRole as $el)
+        {
+            array_push($tempo, $el->name);
+        }
+        $user['roles'] = $tempo;
+
         return response()->json([
             'status' => 'success',
             'data' => $user
@@ -76,7 +94,7 @@ class AuthController extends Controller
                 ->json(['status' => 'successs'], 200)
                 ->header('Authorization', $token);
         }
-        return response()->json(['error' => 'refresh_token_error'], 401);
+        return response()->json(['error' => __('Please log in again')], 401);
     }
     /**
      * Return auth guard

@@ -26,7 +26,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'created_at','updated_at', 'email_verified_at'
     ];
 
     /**
@@ -38,6 +38,16 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Get All permission of the current user
+     *
+     * @return App\Permission
+     */
+    public function permissions() {
+        return $this->belongsToMany('App\Permission');
+    }
+
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -47,4 +57,25 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    /**
+     * Check if the user has a especific permission
+     *
+     * @param string Permission Name
+     * @return boolean
+     */
+    public function hasPermissionTo($moduleName) {
+
+        $permissions=$this->permissions;
+        $hasPermission=false;
+        foreach($permissions as $permission)
+        {
+            if($permission->name == $moduleName)
+            {
+                $hasPermission=true;
+            }
+        }
+        return $hasPermission;
+    }
+
 }
