@@ -150,11 +150,11 @@ export default {
         },
         addItem: function()
         {
-
+            this.$router.push({name: 'admin.addedituser'}).catch(err => {});
         },
         editItem: function(item)
         {
-
+            this.$router.push({name: 'admin.addedituser', params: {userId: item.id}})
         },
         statusItem: function(item)
         {

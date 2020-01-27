@@ -44,7 +44,33 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $result=array(
+            "status" => 'ERROR',
+            "message" => '',
+            "data" => array()
+        );
+
+        $auxUser = User::whereRaw("UPPER(TRIM(email)) = UPPER(TRIM('".$request->input('email')."'))")->get();
+        if(count($auxUser)>0)
+        {
+            Log::info('New User added by '.Auth::user()->name.' :: '.json_encode($auxUser));
+
+            $result['message'] = __('Email already exists');
+        }else{
+            $user = new User;
+            $user->email = $request->input('email');
+            $user->name = $request->input('name');
+            $user->password = bcrypt($request->input('password'));
+            $user->role_id = $request->input('role_id');
+            $user->save();
+
+            Log::info('New User added by '.Auth::user()->name.' :: '.$user);
+
+            $result['status'] = 'SUCCESS';
+            $result['message'] = __('Email already exists');
+        }
+
+        return response($result, 200);
     }
 
     /**
@@ -55,6 +81,24 @@ class UserController extends Controller
      */
     public function show($id)
     {
+        $result=array(
+            "status" => 'ERROR',
+            "message" => '',
+            "data" => array()
+        );
+
+        $user = User::find($id);
+
+        if($user)
+        {
+            $user->permissions;
+            $result['status'] = 'SUCCESS';
+            $result['data'] = $user;
+        }else{
+            $result['status'] = 'ERROR';
+            $result['message'] = __('User not found');
+        }
+        return response($result, 200);
 
     }
 
@@ -78,7 +122,79 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $result=array(
+            "status" => 'ERROR',
+            "message" => '',
+            "data" => array()
+        );
+
+        $continueUpdate=true;
+        $changeUser = User::find($id);
+        if($changeUser->email != $request->input('email'))
+        {
+            $auxUser = User::whereRaw("UPPER(TRIM(email)) = UPPER(TRIM('".$request->input('email')."')) AND id<>".$id);
+            if($auxUser)
+            {
+                $continueUpdate=false;
+            }
+        }
+        //the new email doesnt exists --> modify the user information
+        if($continueUpdate)
+        {
+            $changeUser->email = $request->input('email');
+            $changeUser->name = $request->input('name');
+            if($request->input('password')!='12345678')
+            {
+                $changeUser->password = bcrypt($request->input('password'));
+            }
+            if(strlen($request->input('role_id'))>0)
+            {
+                $changeUser->role_id = $request->input('role_id');
+            }
+            $changeUser->save();
+
+            Log::info('Customer updated by '.Auth::user()->name.' :: '.$changeUser);
+
+
+            //check if permissions changed
+            $new_permissions = $request->input('permissions');
+            $old_permissions_temp = $changeUser->permissions;
+            $old_permissions=[];
+            foreach($old_permissions_temp as $permission)
+            {
+                array_push($old_permissions,$permission->id);
+            }
+            Log::info('new permission :: '.json_encode($new_permissions));
+            Log::info('old permission :: '.json_encode($old_permissions));
+
+            //delete removed permissions
+            $to_delete = array_diff($old_permissions, $new_permissions);
+            foreach($to_delete as $oneDelete)
+            {
+                DB::table('permission_user')
+                    ->where('user_id',$request->input('userId'))
+                    ->where('permission_id',$oneDelete)
+                    ->delete();
+            }
+
+            //add new permissions
+            $to_add = array_diff($new_permissions, $old_permissions);
+            foreach($to_add as $oneAdd)
+            {
+                DB::table('permission_user')->insert([
+                    'user_id' => $request->input('userId'),
+                    'permission_id' => $oneAdd
+                ]);
+            }
+
+            $result['status'] = 'SUCCESS';
+            $result['data']= $changeUser;
+        }else{
+            $result['status'] = 'ERROR';
+            $result['message']= __('Email is already used');
+        }
+
+        return response($result, 200);
     }
 
     /**
@@ -141,7 +257,7 @@ class UserController extends Controller
         return $users;
     }
 
-         /**
+    /**
      * Change user status
      *
      * @param Illuminate\Http\Request $request
@@ -176,5 +292,57 @@ class UserController extends Controller
                 ], 200);
             }
         }
+    }
+
+    /**
+     * Get list of roles from database
+     *
+     * @return json with roles
+     */
+    public function getRoles()
+    {
+        $result=array(
+            "status" => 'ERROR',
+            "message" => '',
+            "data" => array()
+        );
+
+        $roles = DB::table('roles')->get();
+
+        if($roles)
+        {
+            $result['status'] = 'SUCCESS';
+            $result['data'] = $roles;
+        }else{
+            $result['message'] = __('Roles not found');
+        }
+
+        return response($result, 200);
+    }
+
+    /**
+     * Get list of Permissions from database
+     *
+     * @return json with roles
+     */
+    public function getPermissions()
+    {
+        $result=array(
+            "status" => 'ERROR',
+            "message" => '',
+            "data" => array()
+        );
+
+        $permissions = DB::table('permissions')->get();
+
+        if($permissions)
+        {
+            $result['status'] = 'SUCCESS';
+            $result['data'] = $permissions;
+        }else{
+            $result['message'] = __('Permissions not found');
+        }
+
+        return response($result, 200);
     }
 }
