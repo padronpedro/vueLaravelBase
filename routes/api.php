@@ -43,7 +43,11 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/user/datatable', 'UserController@getUsersForDataTable')->middleware(['permission:Manage_Users'])->name('user.datatable');
         Route::post('/user/status', 'UserController@statusUser')->middleware(['permission:Edit_Users'])->name('user.status');
-        Route::resource('user', 'UserController');
+        Route::resource('user', 'UserController')->middleware(['permission:Manage_Users']);
+
+        Route::get('/roles', 'UserController@getRoles')->middleware(['permission:Add_Users','permission:Edit_Users'])->name('user.roles');
+        Route::get('/permissions', 'UserController@getPermissions')->middleware(['permission:Add_Users','permission:Edit_Users'])->name('user.permissions');
+
 
     });
 });

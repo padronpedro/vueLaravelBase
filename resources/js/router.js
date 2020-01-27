@@ -4,8 +4,11 @@ import Home from './pages/Home'
 import Register from './pages/login/Register'
 import Login from './pages/login/Login'
 import Dashboard from './pages/user/Dashboard'
+
 import AdminDashboard from './pages/admin/Dashboard'
 import AdminUsers from './pages/admin/AdminUsers'
+import AddEditUser from './pages/admin/AddEditUser'
+
 // Routes
 const routes = [
   {
@@ -63,6 +66,21 @@ const routes = [
     meta: {
       auth: {
         roles: 'Manage_Users',
+        redirect: {
+          name: 'login'
+        },
+        forbiddenRedirect: '/403'
+      }
+    }
+  },
+  {
+    path: '/admin/addedituser',
+    name: 'admin.addedituser',
+    component: AddEditUser,
+    props: true,
+    meta: {
+      auth: {
+        roles: ['Add_Users','Edit_Users'],
         redirect: {
           name: 'login'
         },
