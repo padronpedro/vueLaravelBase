@@ -13,7 +13,7 @@
                 max-height="20"
             />
 
-            <v-toolbar-title>Jemap</v-toolbar-title>
+            <v-toolbar-title>BugTrack</v-toolbar-title>
 
             <v-toolbar-items
                 class="d-none d-sm-flex">

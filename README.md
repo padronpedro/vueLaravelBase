@@ -14,6 +14,23 @@ This repository is the baseline for a Laravel + VueJs + JWT + vuetify project, i
 
 The main idea is: you can clone this project and have a basic project to start coding.
 
+## How to use it
+
+- Clone the repository
+- npm install
+- composer install
+- php artisan key:generate
+- php artisan jwt:secret
+- chmod -R o+w storage
+- chmod -R o+w bootstrap/cache/
+- php artisan config:clear
+- php artisan cache:clear
+- php artisan view:clear
+- php artisan route:clear
+- composer dumpautoload
+- php artisan migrate:refresh --seed
+- npm run watch
+
 
 ## In progress
 
